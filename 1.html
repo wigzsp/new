@@ -1,0 +1,804 @@
+﻿<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>psych0ne | CS Player & Developer</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;900&display=swap');
+        
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        :root {
+            --primary: #ffa500;
+            --primary-dark: #ff6b35;
+            --steam: #1b2838;
+            --steam-accent: #66c0f4;
+            --faceit: #ff5500;
+            --bg: #0a0a0a;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background: var(--bg);
+            color: #fff;
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 2rem;
+        }
+
+        /* Language Switcher */
+        .lang-switcher {
+            position: fixed;
+            top: 2rem;
+            right: 2rem;
+            z-index: 100;
+            display: flex;
+            gap: 0.5rem;
+            background: rgba(17, 17, 17, 0.8);
+            backdrop-filter: blur(10px);
+            padding: 0.5rem;
+            border-radius: 12px;
+            border: 1px solid rgba(255, 165, 0, 0.2);
+        }
+
+        .lang-btn {
+            background: transparent;
+            border: none;
+            color: #666;
+            padding: 0.5rem 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            font-size: 0.9rem;
+            border-radius: 8px;
+            transition: all 0.3s;
+            font-family: inherit;
+        }
+
+        .lang-btn.active {
+            background: var(--primary);
+            color: #000;
+        }
+
+        .lang-btn:hover:not(.active) {
+            color: #fff;
+        }
+
+        /* Hero Section */
+        .hero {
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            position: relative;
+            padding: 4rem 0;
+        }
+
+        .hero::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: 
+                radial-gradient(circle at 20% 50%, rgba(255, 165, 0, 0.15) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255, 107, 53, 0.1) 0%, transparent 50%);
+            pointer-events: none;
+        }
+
+        /* Profile Card */
+        .profile-wrapper {
+            position: relative;
+            z-index: 1;
+            margin-bottom: 3rem;
+        }
+
+        .profile-card {
+            background: linear-gradient(180deg, #111 0%, #0a0a0a 100%);
+            border: 1px solid rgba(255, 165, 0, 0.3);
+            border-radius: 24px;
+            overflow: hidden;
+            width: 340px;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.8);
+            position: relative;
+        }
+
+        .profile-card::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            height: 4px;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-dark) 100%);
+        }
+
+        .avatar-section {
+            padding: 2.5rem 2rem 2rem;
+            text-align: center;
+            background: linear-gradient(180deg, rgba(255, 165, 0, 0.05) 0%, transparent 100%);
+        }
+
+        .avatar-container {
+            position: relative;
+            width: 160px;
+            height: 160px;
+            margin: 0 auto 1.5rem;
+        }
+
+        .avatar {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            object-fit: cover;
+            border: 4px solid var(--primary);
+            box-shadow: 0 0 30px rgba(255, 165, 0, 0.3);
+        }
+
+        .level-badge {
+            position: absolute;
+            bottom: 0;
+            right: 0;
+            background: #000;
+            color: var(--primary);
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+            font-weight: 900;
+            border: 3px solid var(--primary);
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.5);
+        }
+
+        .current-nick {
+            font-size: 2.2rem;
+            font-weight: 900;
+            background: linear-gradient(135deg, #fff 0%, #aaa 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            margin-bottom: 0.5rem;
+            letter-spacing: -1px;
+        }
+
+        .previous-nicks {
+            color: #666;
+            font-size: 1rem;
+            font-weight: 500;
+        }
+
+        .previous-nicks span {
+            color: var(--primary);
+            font-weight: 600;
+        }
+
+        /* Stats Grid */
+        .stats-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 1px;
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .stat-box {
+            background: rgba(17, 17, 17, 0.8);
+            padding: 1.5rem;
+            text-align: center;
+            transition: background 0.3s;
+        }
+
+        .stat-box:hover {
+            background: rgba(255, 165, 0, 0.05);
+        }
+
+        .stat-value {
+            font-size: 1.8rem;
+            font-weight: 900;
+            color: var(--primary);
+            line-height: 1;
+        }
+
+        .stat-label {
+            font-size: 0.75rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            margin-top: 0.5rem;
+            font-weight: 600;
+        }
+
+        /* Content Section */
+        .content {
+            max-width: 700px;
+            text-align: center;
+            position: relative;
+            z-index: 1;
+        }
+
+        .greeting {
+            font-size: 1.5rem;
+            color: #888;
+            margin-bottom: 1rem;
+            font-weight: 300;
+        }
+
+        .greeting strong {
+            color: var(--primary);
+            font-weight: 700;
+        }
+
+        .description {
+            font-size: 1.1rem;
+            color: #bbb;
+            line-height: 1.8;
+            margin-bottom: 2rem;
+        }
+
+        .highlight {
+            color: #fff;
+            font-weight: 600;
+        }
+
+        /* Gaming Platforms - Clickable Buttons */
+        .platforms {
+            display: flex;
+            justify-content: center;
+            gap: 1rem;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+        }
+
+        .platform-btn {
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-weight: 700;
+            font-size: 1rem;
+            text-decoration: none;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            overflow: hidden;
+            border: 2px solid transparent;
+        }
+
+        .platform-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255,255,255,0.2), transparent);
+            transition: left 0.6s;
+        }
+
+        .platform-btn:hover::before {
+            left: 100%;
+        }
+
+        .steam-btn {
+            background: linear-gradient(135deg, var(--steam) 0%, #2a475e 100%);
+            color: #fff;
+            border-color: var(--steam-accent);
+        }
+
+        .steam-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(102, 192, 244, 0.3);
+            border-color: var(--steam-accent);
+        }
+
+        .faceit-btn {
+            background: linear-gradient(135deg, var(--faceit) 0%, #ff7733 100%);
+            color: #fff;
+            border-color: #ffaa80;
+        }
+
+        .faceit-btn:hover {
+            transform: translateY(-3px) scale(1.02);
+            box-shadow: 0 10px 30px rgba(255, 85, 0, 0.4);
+            border-color: #ffaa80;
+        }
+
+        .platform-icon {
+            font-size: 1.3rem;
+        }
+
+        /* Floating Languages - Non-clickable */
+        .languages-container {
+            margin: 2.5rem 0;
+            position: relative;
+            height: 120px;
+            overflow: visible;
+        }
+
+        .languages-title {
+            font-size: 0.9rem;
+            color: #666;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 1rem;
+        }
+
+        .floating-lang {
+            display: inline-block;
+            padding: 0.8rem 1.5rem;
+            background: rgba(255, 165, 0, 0.1);
+            border: 1px solid rgba(255, 165, 0, 0.3);
+            border-radius: 50px;
+            font-weight: 700;
+            color: var(--primary);
+            position: absolute;
+            pointer-events: none;
+            user-select: none;
+            font-size: 0.95rem;
+        }
+
+        /* Floating Animations */
+        @keyframes float1 {
+            0%, 100% { transform: translate(0, 0) rotate(-2deg); }
+            25% { transform: translate(10px, -15px) rotate(2deg); }
+            50% { transform: translate(-5px, -8px) rotate(-1deg); }
+            75% { transform: translate(15px, -20px) rotate(3deg); }
+        }
+
+        @keyframes float2 {
+            0%, 100% { transform: translate(0, 0) rotate(2deg); }
+            25% { transform: translate(-15px, -10px) rotate(-2deg); }
+            50% { transform: translate(10px, -18px) rotate(1deg); }
+            75% { transform: translate(-8px, -12px) rotate(-3deg); }
+        }
+
+        @keyframes float3 {
+            0%, 100% { transform: translate(0, 0) rotate(-1deg); }
+            33% { transform: translate(20px, -12px) rotate(2deg); }
+            66% { transform: translate(-12px, -20px) rotate(-2deg); }
+        }
+
+        @keyframes float4 {
+            0%, 100% { transform: translate(0, 0) rotate(3deg); }
+            25% { transform: translate(-10px, -18px) rotate(-1deg); }
+            50% { transform: translate(15px, -10px) rotate(2deg); }
+            75% { transform: translate(-5px, -15px) rotate(-3deg); }
+        }
+
+        .lang-1 { left: 15%; top: 40%; animation: float1 6s ease-in-out infinite; }
+        .lang-2 { left: 35%; top: 20%; animation: float2 7s ease-in-out infinite; animation-delay: 0.5s; }
+        .lang-3 { left: 55%; top: 45%; animation: float3 5s ease-in-out infinite; animation-delay: 1s; }
+        .lang-4 { left: 75%; top: 25%; animation: float4 6.5s ease-in-out infinite; animation-delay: 1.5s; }
+
+        /* Warning Box */
+        .warning-box {
+            background: rgba(255, 165, 0, 0.05);
+            border: 1px solid rgba(255, 165, 0, 0.2);
+            border-radius: 16px;
+            padding: 1.5rem;
+            margin: 2rem 0;
+            position: relative;
+        }
+
+        .warning-box::before {
+            content: '🤡';
+            position: absolute;
+            top: -15px;
+            left: 50%;
+            transform: translateX(-50%);
+            background: var(--bg);
+            padding: 0 1rem;
+            font-size: 1.5rem;
+        }
+
+        .warning-text {
+            color: #888;
+            font-size: 0.95rem;
+            font-style: italic;
+        }
+
+        /* Quote Section */
+        .quote-section {
+            margin: 2rem 0;
+            padding: 2rem;
+            position: relative;
+            border-left: 3px solid var(--primary);
+            background: linear-gradient(90deg, rgba(255, 165, 0, 0.05) 0%, transparent 100%);
+        }
+
+        .quote-text {
+            font-size: 1.2rem;
+            color: #ddd;
+            font-style: italic;
+            line-height: 1.6;
+            margin-bottom: 1rem;
+            position: relative;
+            padding-left: 1rem;
+        }
+
+        .quote-text::before {
+            content: '"';
+            position: absolute;
+            left: -0.5rem;
+            top: -0.5rem;
+            font-size: 3rem;
+            color: var(--primary);
+            opacity: 0.3;
+            font-family: Georgia, serif;
+        }
+
+        .quote-author {
+            color: #666;
+            font-size: 0.9rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            padding-left: 1rem;
+        }
+
+        .quote-author::before {
+            content: '— ';
+            color: var(--primary);
+        }
+
+        /* Contact Buttons */
+        .contacts-title {
+            font-size: 1.2rem;
+            color: #666;
+            margin-bottom: 1.5rem;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+        }
+
+        .contacts {
+            display: flex;
+            flex-wrap: wrap;
+            justify-content: center;
+            gap: 1rem;
+        }
+
+        .contact-btn {
+            background: transparent;
+            border: 2px solid var(--primary);
+            color: var(--primary);
+            padding: 1rem 2rem;
+            border-radius: 12px;
+            font-family: inherit;
+            font-weight: 700;
+            font-size: 1rem;
+            cursor: pointer;
+            transition: all 0.3s;
+            text-decoration: none;
+            display: inline-block;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .contact-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 165, 0, 0.2), transparent);
+            transition: left 0.5s;
+        }
+
+        .contact-btn:hover::before {
+            left: 100%;
+        }
+
+        .contact-btn:hover {
+            background: var(--primary);
+            color: #000;
+            transform: translateY(-3px);
+            box-shadow: 0 10px 30px rgba(255, 165, 0, 0.3);
+        }
+
+        /* Footer */
+        .footer {
+            margin-top: 4rem;
+            padding: 2rem;
+            text-align: center;
+            color: #444;
+            font-size: 0.9rem;
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .footer span {
+            color: var(--primary);
+        }
+
+        /* Language specific content */
+        [data-lang] {
+            display: none;
+        }
+
+        [data-lang].active {
+            display: block;
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .lang-switcher {
+                top: 1rem;
+                right: 1rem;
+            }
+
+            .profile-card {
+                width: 100%;
+                max-width: 340px;
+            }
+            
+            .current-nick {
+                font-size: 1.8rem;
+            }
+            
+            .platforms {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .platform-btn {
+                width: 220px;
+                justify-content: center;
+            }
+            
+            .contacts {
+                flex-direction: column;
+                align-items: center;
+            }
+            
+            .contact-btn {
+                width: 200px;
+            }
+            
+            .floating-lang {
+                font-size: 0.85rem;
+                padding: 0.6rem 1.2rem;
+            }
+            
+            .lang-1 { left: 5%; }
+            .lang-2 { left: 25%; }
+            .lang-3 { left: 45%; }
+            .lang-4 { left: 65%; }
+
+            .quote-section {
+                margin: 1.5rem 0;
+                padding: 1.5rem;
+            }
+
+            .quote-text {
+                font-size: 1.1rem;
+            }
+        }
+
+        /* Animations */
+        @keyframes fadeInUp {
+            from {
+                opacity: 0;
+                transform: translateY(30px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        .profile-wrapper, .content > * {
+            animation: fadeInUp 0.8s ease forwards;
+            opacity: 0;
+        }
+
+        .content > *:nth-child(1) { animation-delay: 0.2s; }
+        .content > *:nth-child(2) { animation-delay: 0.4s; }
+        .content > *:nth-child(3) { animation-delay: 0.6s; }
+        .content > *:nth-child(4) { animation-delay: 0.8s; }
+        .content > *:nth-child(5) { animation-delay: 1s; }
+        .content > *:nth-child(6) { animation-delay: 1.2s; }
+        .content > *:nth-child(7) { animation-delay: 1.4s; }
+        .content > *:nth-child(8) { animation-delay: 1.6s; }
+    </style>
+</head>
+<body>
+    <!-- Language Switcher -->
+    <div class="lang-switcher">
+        <button class="lang-btn active" onclick="switchLang('ru')">RU</button>
+        <button class="lang-btn" onclick="switchLang('en')">EN</button>
+    </div>
+
+    <div class="container">
+        <div class="hero">
+            <!-- Profile Card -->
+            <div class="profile-wrapper">
+                <div class="profile-card">
+                    <div class="avatar-section">
+                        <div class="avatar-container">
+                            <img src="https://i.imgur.com/8Km9tLL.jpg" alt="psych0ne" class="avatar" id="avatar">
+                            <div class="level-badge">8</div>
+                        </div>
+                        <div class="current-nick">psych0ne</div>
+                        <div class="previous-nicks">
+                            <span data-lang="ru">раньше: </span>
+                            <span data-lang="en">aka: </span>
+                            <span>wigz</span> • <span>spoqeer</span>
+                        </div>
+                    </div>
+                    <div class="stats-grid">
+                        <div class="stat-box">
+                            <div class="stat-value">8+</div>
+                            <div class="stat-label" data-lang="ru">лет опыта</div>
+                            <div class="stat-label" data-lang="en">years exp</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">Global</div>
+                            <div class="stat-label" data-lang="ru">в CS:GO</div>
+                            <div class="stat-label" data-lang="en">in CS:GO</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">~1600</div>
+                            <div class="stat-label" data-lang="ru">эло фейсит</div>
+                            <div class="stat-label" data-lang="en">faceit elo</div>
+                        </div>
+                        <div class="stat-box">
+                            <div class="stat-value">20+</div>
+                            <div class="stat-label" data-lang="ru">аккаунтов</div>
+                            <div class="stat-label" data-lang="en">accounts</div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Content -->
+            <div class="content">
+                <!-- RU Version -->
+                <div data-lang="ru" class="active">
+                    <p class="greeting">Привет, мне <strong>17</strong></p>
+                    
+                    <p class="description">
+                        Играю в CS с <span class="highlight">2015 года</span> — начинал с Source, 
+                        потом GO, сейчас CS2 с момента релиза. 
+                        <br><br>
+                        Пишу код на C++, C#, Python и AHK. Иногда развлекаюсь в Доте, так что не удивляйся если увидишь что я занимаюсь смурфом — это просто отдых от рутины.
+                    </p>
+
+                    <div class="platforms">
+                        <a href="https://steamcommunity.com/id/psych0ne/" class="platform-btn steam-btn" target="_blank">
+                            <span class="platform-icon">🤡</span>
+                            <span>Steam</span>
+                        </a>
+                        <a href="https://www.faceit.com/en/players/psych0ne" class="platform-btn faceit-btn" target="_blank">
+                            <span class="platform-icon">🤡</span>
+                            <span>Faceit</span>
+                        </a>
+                    </div>
+
+                    <div class="languages-container">
+                        <div class="languages-title">Стек технологий</div>
+                        <div class="floating-lang lang-1">C++</div>
+                        <div class="floating-lang lang-2">C#</div>
+                        <div class="floating-lang lang-3">Python</div>
+                        <div class="floating-lang lang-4">AHK</div>
+                    </div>
+
+                    <div class="warning-box">
+                        <p class="warning-text">
+                            У меня много аккаунтов, поэтому часы в профиле могут быть любыми — 
+                            от 5 до бесконечности. Этот сайт создан, чтобы прояснить ситуацию и рассказать обо мне.
+                        </p>
+                    </div>
+
+                    <div class="quote-section">
+                        <p class="quote-text">
+                            Все люди — рабы чего-то. Кого-то. Или своих же принципов.
+                        </p>
+                        <p class="quote-author">Кенни Аккерман</p>
+                    </div>
+
+                    <p class="contacts-title">Связаться</p>
+                    <div class="contacts">
+                        <a href="https://t.me/Dadruuuz" class="contact-btn" target="_blank">Telegram main</a>
+                        <a href="https://t.me/intel_i3_9300f" class="contact-btn" target="_blank">Telegram #2</a>
+                        <a href="https://t.me/shadow_sec_owner" class="contact-btn" target="_blank">Telegram #3</a>
+                    </div>
+                </div>
+
+                <!-- EN Version -->
+                <div data-lang="en">
+                    <p class="greeting">Hi, I'm <strong>17</strong></p>
+                    
+                    <p class="description">
+                        Playing CS since <span class="highlight">2015</span> — started with Source, 
+                        then GO, now CS2 since release. 
+                        <br><br>
+                        I code in C++, C#, Python and AHK. Sometimes I chill in Dota, so don't be surprised if you see me smurfing — it's just a break from the routine.
+                    </p>
+
+                    <div class="platforms">
+                        <a href="https://steamcommunity.com/id/psych0ne/" class="platform-btn steam-btn" target="_blank">
+                            <span class="platform-icon">🤡</span>
+                            <span>Steam</span>
+                        </a>
+                        <a href="https://www.faceit.com/en/players/psych0ne" class="platform-btn faceit-btn" target="_blank">
+                            <span class="platform-icon">🤡</span>
+                            <span>Faceit</span>
+                        </a>
+                    </div>
+
+                    <div class="languages-container">
+                        <div class="languages-title">Tech Stack</div>
+                        <div class="floating-lang lang-1">C++</div>
+                        <div class="floating-lang lang-2">C#</div>
+                        <div class="floating-lang lang-3">Python</div>
+                        <div class="floating-lang lang-4">AHK</div>
+                    </div>
+
+                    <div class="warning-box">
+                        <p class="warning-text">
+                            I have many accounts, so hours on profile may vary — 
+                            from 5 to infinity. This site was created to clarify the situation and tell about me.
+                        </p>
+                    </div>
+
+                    <div class="quote-section">
+                        <p class="quote-text">
+                            Everyone is a slave to something. To someone. Or to their own principles.
+                        </p>
+                        <p class="quote-author">Kenny Ackerman</p>
+                    </div>
+
+                    <p class="contacts-title">Contact</p>
+                    <div class="contacts">
+                        <a href="https://t.me/Dadruuuz" class="contact-btn" target="_blank">Telegram main</a>
+                        <a href="https://t.me/intel_i3_9300f" class="contact-btn" target="_blank">Telegram #2</a>
+                        <a href="https://t.me/shadow_sec_owner" class="contact-btn" target="_blank">Telegram #3</a>
+                    </div>
+                </div>
+            </div>
+
+            <div class="footer">
+                <span>made by psych0ne</span> 
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Language switcher
+        function switchLang(lang) {
+            // Update buttons
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.remove('active');
+            });
+            event.target.classList.add('active');
+
+            // Update content
+            document.querySelectorAll('[data-lang]').forEach(el => {
+                if (el.getAttribute('data-lang') === lang) {
+                    el.classList.add('active');
+                } else {
+                    el.classList.remove('active');
+                }
+            });
+        }
+
+        // Fallback для аватарки
+        document.getElementById('avatar').addEventListener('error', function() {
+            this.src = 'data:image/svg+xml,%3Csvg xmlns="http://www.w3.org/2000/svg" width="160" height="160"%3E%3Crect fill="%23ffa500" width="160" height="160"/%3E%3Ctext x="50%25" y="50%25" font-size="80" fill="%23000" text-anchor="middle" dominant-baseline="middle" font-family="Arial"%3EP%3C/text%3E%3C/svg%3E';
+        });
+    </script>
+</body>
+</html>
