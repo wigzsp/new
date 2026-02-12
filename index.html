@@ -1,4 +1,4 @@
-﻿<!DOCTYPE html>
+<!DOCTYPE html>
 <html lang="ru">
 <head>
     <meta charset="UTF-8">
@@ -40,30 +40,62 @@
         /* Language Switcher */
         .lang-switcher {
             position: fixed;
-            top: 2rem;
-            right: 2rem;
+            top: 1.5rem;
+            left: 0;
+            right: 0;
             z-index: 100;
             display: flex;
-            gap: 0.5rem;
-            background: rgba(17, 17, 17, 0.8);
-            backdrop-filter: blur(10px);
-            padding: 0.5rem;
+            align-items: center;
+            justify-content: center;
+            background: transparent;
+            padding: 0 1rem;
+            pointer-events: none;
+        }
+
+        /* inner bar that stretches and holds two equal buttons */
+        .lang-switcher .lang-bar {
+            width: 100%;
+            max-width: 960px;
+            display: flex;
+            gap: 0; /* no gap — make halves fully clickable */
+            background: rgba(17,17,17,0.85);
+            padding: 0; /* remove padding so buttons can fill full height */
+            height: 44px; /* explicit height for predictable clickable area */
             border-radius: 12px;
-            border: 1px solid rgba(255, 165, 0, 0.2);
+            border: 1px solid rgba(255,165,0,0.18);
+            box-shadow: 0 6px 24px rgba(0,0,0,0.18);
+            pointer-events: auto;
+            overflow: hidden;
         }
 
         .lang-btn {
-            background: transparent;
-            border: none;
-            color: #666;
-            padding: 0.5rem 1rem;
+            flex: 1 1 0;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
+            background: rgba(255, 165, 0, 0.04);
+            border: none; /* remove per-button border to avoid gaps */
+            color: #ffd7a6;
+            padding: 0 6px; /* small horizontal padding for text */
+            height: 100%; /* fill the bar height so entire half is clickable */
+            width: 100%;
+            text-align: center;
+            white-space: nowrap;
             cursor: pointer;
-            font-weight: 600;
-            font-size: 0.9rem;
-            border-radius: 8px;
-            transition: all 0.3s;
+            font-weight: 800;
+            font-size: 0.95rem;
+            transition: all 0.12s ease;
             font-family: inherit;
+            pointer-events: auto;
+            line-height: 1;
         }
+
+        /* separator line between halves */
+        .lang-btn + .lang-btn { box-shadow: inset 1px 0 0 rgba(255,165,0,0.08); }
+
+        /* rounded corners for outer edges */
+        .lang-btn:first-child { border-top-left-radius: 8px; border-bottom-left-radius: 8px; }
+        .lang-btn:last-child  { border-top-right-radius: 8px; border-bottom-right-radius: 8px; }
 
         .lang-btn.active {
             background: var(--primary);
@@ -71,7 +103,13 @@
         }
 
         .lang-btn:hover:not(.active) {
-            color: #fff;
+            color: #000;
+            background: rgba(255,165,0,0.18);
+            transform: translateY(-1px);
+        }
+
+        .lang-btn:not(.active) {
+            border-color: rgba(255,165,0,0.14);
         }
 
         /* Hero Section */
@@ -523,12 +561,13 @@
             color: var(--primary);
         }
 
-        /* Language specific content */
-        [data-lang] {
+        /* Language specific content (exclude language buttons)
+           Keep UI buttons with `data-lang` visible by excluding `.lang-btn` */
+        [data-lang]:not(.lang-btn) {
             display: none;
         }
 
-        [data-lang].active {
+        [data-lang].active:not(.lang-btn) {
             display: block;
         }
 
@@ -612,13 +651,34 @@
         .content > *:nth-child(6) { animation-delay: 1.2s; }
         .content > *:nth-child(7) { animation-delay: 1.4s; }
         .content > *:nth-child(8) { animation-delay: 1.6s; }
+
+        /* Background particles canvas */
+        #bg-canvas {
+            position: fixed;
+            inset: 0;
+            width: 100%;
+            height: 100%;
+            z-index: 0;
+            pointer-events: none;
+            mix-blend-mode: screen;
+            opacity: 0.12;
+        }
+
+        /* Ensure main page content sits above canvas */
+        .container, .lang-switcher, .profile-wrapper, .content {
+            position: relative;
+            z-index: 1;
+        }
     </style>
 </head>
 <body>
+    <canvas id="bg-canvas" aria-hidden="true"></canvas>
     <!-- Language Switcher -->
     <div class="lang-switcher">
-        <button class="lang-btn active" onclick="switchLang('ru')">RU</button>
-        <button class="lang-btn" onclick="switchLang('en')">EN</button>
+        <div class="lang-bar">
+            <button class="lang-btn active" data-lang="ru" onclick="switchLang('ru', this)">RU</button>
+            <button class="lang-btn" data-lang="en" onclick="switchLang('en', this)">EN</button>
+        </div>
     </div>
 
     <div class="container">
@@ -777,23 +837,108 @@
     </div>
 
     <script>
-        // Language switcher
-        function switchLang(lang) {
-            // Update buttons
-            document.querySelectorAll('.lang-btn').forEach(btn => {
-                btn.classList.remove('active');
-            });
-            event.target.classList.add('active');
+        /* Particles background (lightweight) */
+        (function() {
+            var canvas = document.getElementById('bg-canvas');
+            if (!canvas) return;
+            var ctx = canvas.getContext('2d');
+            var particles = [];
+            var running = true;
 
-            // Update content
-            document.querySelectorAll('[data-lang]').forEach(el => {
-                if (el.getAttribute('data-lang') === lang) {
-                    el.classList.add('active');
-                } else {
-                    el.classList.remove('active');
+            function resize() {
+                var dpr = window.devicePixelRatio || 1;
+                canvas.width = Math.floor(window.innerWidth * dpr);
+                canvas.height = Math.floor(window.innerHeight * dpr);
+                canvas.style.width = window.innerWidth + 'px';
+                canvas.style.height = window.innerHeight + 'px';
+                ctx.setTransform(dpr, 0, 0, dpr, 0, 0);
+                // re-calc particle count
+                var area = window.innerWidth * window.innerHeight;
+                var target = Math.round(Math.min(120, Math.max(18, area / 12000)));
+                while (particles.length < target) particles.push(createParticle());
+                while (particles.length > target) particles.pop();
+            }
+
+            function rand(min, max) { return Math.random() * (max - min) + min; }
+
+            function createParticle() {
+                var w = window.innerWidth;
+                var h = window.innerHeight;
+                return {
+                    x: rand(0, w),
+                    y: rand(0, h),
+                    vx: rand(-0.15, 0.15),
+                    vy: rand(-0.05, -0.5),
+                    r: rand(0.8, 3.2),
+                    hue: rand(30, 45),
+                    alpha: rand(0.05, 0.25)
+                };
+            }
+
+            function step() {
+                if (!running) return;
+                ctx.clearRect(0,0,canvas.width,canvas.height);
+                for (var i = 0; i < particles.length; i++) {
+                    var p = particles[i];
+                    p.x += p.vx * (1 + p.r/2);
+                    p.y += p.vy * (1 + p.r/2);
+
+                    // wrap
+                    if (p.x < -20) p.x = window.innerWidth + 20;
+                    if (p.x > window.innerWidth + 20) p.x = -20;
+                    if (p.y < -40) p.y = window.innerHeight + 40;
+                    if (p.y > window.innerHeight + 40) p.y = -40;
+
+                    // draw as soft circle
+                    var g = ctx.createRadialGradient(p.x, p.y, 0, p.x, p.y, p.r*8);
+                    g.addColorStop(0, 'hsla(' + p.hue + ',95%,' + (40 + p.r*6) + '%,' + (p.alpha*1.0) + ')');
+                    g.addColorStop(1, 'hsla(' + p.hue + ',95%,20%,0)');
+                    ctx.fillStyle = g;
+                    ctx.beginPath();
+                    ctx.arc(p.x, p.y, p.r*8, 0, Math.PI*2);
+                    ctx.fill();
                 }
+                requestAnimationFrame(step);
+            }
+
+            // Pause when tab hidden to save CPU
+            document.addEventListener('visibilitychange', function(){ running = !document.hidden; if (running) requestAnimationFrame(step); });
+            window.addEventListener('resize', resize);
+            // init
+            resize();
+            requestAnimationFrame(step);
+        })();
+        // Language switcher
+        function switchLang(lang, ev) {
+            // Update buttons (use data-lang attribute)
+            document.querySelectorAll('.lang-btn').forEach(btn => {
+                btn.classList.toggle('active', btn.getAttribute('data-lang') === lang);
+            });
+
+            // If a target element or event was provided, ensure it's active too
+            if (ev) {
+                var target = ev.target || ev;
+                if (target && target.classList) target.classList.add('active');
+            }
+
+            // Update all elements with data-lang attribute (containers and inline spans)
+            document.querySelectorAll('[data-lang]').forEach(el => {
+                el.classList.toggle('active', el.getAttribute('data-lang') === lang);
             });
         }
+
+        // Ensure correct language state on initial load
+        document.addEventListener('DOMContentLoaded', function() {
+            var initial = document.documentElement.lang || 'ru';
+            var alt = initial === 'ru' ? 'en' : 'ru';
+
+            // Flash to the alternate language and back to trigger inline language elements
+            // Some elements appear only after a language toggle; this ensures they render.
+            switchLang(alt);
+            setTimeout(function() {
+                switchLang(initial);
+            }, 250);
+        });
 
         // Fallback для аватарки
         document.getElementById('avatar').addEventListener('error', function() {
