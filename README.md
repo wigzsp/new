@@ -1,1 +1,1 @@
-[# new](https://wigzsp.github.io/new/)
+https://wigzsp.github.io/new/
